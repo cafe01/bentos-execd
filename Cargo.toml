@@ -1,0 +1,22 @@
+[package]
+name = "bentos-execd"
+version = "0.1.0"
+edition = "2021"
+description = "BentOS guest exec agent — structured command execution over vsock"
+
+[dependencies]
+prost = "0.13"
+prost-types = "0.13"
+nix = { version = "0.29", features = ["process", "signal", "term", "ioctl", "poll", "fs"] }
+log = "0.4"
+env_logger = { version = "0.11", default-features = false, features = ["auto-color", "humantime"] }
+
+[build-dependencies]
+prost-build = "0.13"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

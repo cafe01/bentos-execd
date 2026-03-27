@@ -1,0 +1,14 @@
+agent: john
+scope: lib/bentos_execd
+session: 2
+updated: 2026-03-27
+edges:
+  episodic:
+    - file: build-state.md
+      weight: 0.95
+  prospective:
+    - file: next-steps.md
+      weight: 0.8
+  semantic:
+    - file: nix-api-gotchas.md
+      weight: 0.7

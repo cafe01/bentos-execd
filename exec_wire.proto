@@ -1,0 +1,54 @@
+syntax = "proto3";
+package bentos.exec;
+
+// Wire protocol for bentos-execd guest agent.
+// Transport: TLV framing over AF_VSOCK SOCK_STREAM, port 5100.
+// Header: [1 byte type][4 byte u32 LE length][protobuf payload]
+// Max payload: 1 MB.
+
+// --- Host -> Guest (type bytes 0x01-0x0F) ---
+
+// Type 0x01: Start a process.
+message ExecRequest {
+  repeated string cmd = 1;           // argv — cmd[0] is the executable
+  map<string, string> env = 2;       // environment variables (merged with defaults)
+  string cwd = 3;                    // working directory (empty = agent default)
+  bool tty = 4;                      // true = forkpty(), false = pipe()+fork()
+  uint32 rows = 5;                   // initial terminal rows (tty mode only)
+  uint32 cols = 6;                   // initial terminal cols (tty mode only)
+}
+
+// Type 0x02: STDIN_DATA — payload is raw bytes, not protobuf.
+// Type 0x03: STDIN_EOF — payload is empty (length = 0).
+
+// Type 0x04: Terminal resize (tty mode only).
+message WindowResize {
+  uint32 rows = 1;
+  uint32 cols = 2;
+}
+
+// Type 0x05: Forward signal to process.
+message Signal {
+  int32 signal = 1;                  // POSIX signal number (e.g. 2 = SIGINT)
+}
+
+// --- Guest -> Host (type bytes 0x10-0x1F) ---
+
+// Type 0x10: Process started.
+message ExecStarted {
+  uint32 pid = 1;
+}
+
+// Type 0x11: STDOUT_DATA — payload is raw bytes, not protobuf.
+// Type 0x12: STDERR_DATA — payload is raw bytes, not protobuf.
+
+// Type 0x13: Process exited.
+message ExitStatus {
+  int32 code = 1;                    // exit code (0-255), or -1 if killed by signal
+  int32 signal = 2;                  // signal number that killed the process (0 = normal exit)
+}
+
+// Type 0x14: Failed to start process.
+message ExecError {
+  string error = 1;                  // human-readable error message
+}
