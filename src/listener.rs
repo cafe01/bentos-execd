@@ -68,6 +68,7 @@ impl TcpListener {
         Ok(Self { inner })
     }
 
+    #[allow(dead_code)]
     pub fn local_addr(&self) -> io::Result<std::net::SocketAddr> {
         self.inner.local_addr()
     }

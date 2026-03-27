@@ -33,9 +33,9 @@ pub fn exec_non_tty(req: &proto::ExecRequest) -> io::Result<Child> {
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "empty command"));
     }
 
-    let stdin_pipe = pipe().map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
-    let stdout_pipe = pipe().map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
-    let stderr_pipe = pipe().map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+    let stdin_pipe = pipe().map_err(io::Error::other)?;
+    let stdout_pipe = pipe().map_err(io::Error::other)?;
+    let stderr_pipe = pipe().map_err(io::Error::other)?;
 
     // Extract raw fds before fork — OwnedFd doesn't cross fork safely
     let stdin_r = stdin_pipe.0.as_raw_fd();
@@ -67,10 +67,9 @@ pub fn exec_non_tty(req: &proto::ExecRequest) -> io::Result<Child> {
             let _ = close(stderr_w);
 
             // Set cwd
-            if !req.cwd.is_empty() {
-                if unistd::chdir(req.cwd.as_str()).is_err() {
-                    std::process::exit(127);
-                }
+            if !req.cwd.is_empty()
+                && unistd::chdir(req.cwd.as_str()).is_err() {
+                std::process::exit(127);
             }
 
             // Set environment
@@ -102,7 +101,7 @@ pub fn exec_non_tty(req: &proto::ExecRequest) -> io::Result<Child> {
                 stderr_fd: stderr_pipe.0,
             })
         }
-        Err(e) => Err(io::Error::new(io::ErrorKind::Other, e)),
+        Err(e) => Err(io::Error::other(e)),
     }
 }
 
@@ -132,18 +131,17 @@ pub fn wait_child(pid: Pid) -> io::Result<proto::ExitStatus> {
 
     match waitpid(pid, None) {
         Ok(WaitStatus::Exited(_, code)) => Ok(proto::ExitStatus {
-            code: code as i32,
+            code,
             signal: 0,
         }),
         Ok(WaitStatus::Signaled(_, sig, _)) => Ok(proto::ExitStatus {
             code: -1,
             signal: sig as i32,
         }),
-        Ok(other) => Err(io::Error::new(
-            io::ErrorKind::Other,
+        Ok(other) => Err(io::Error::other(
             format!("unexpected wait status: {:?}", other),
         )),
-        Err(e) => Err(io::Error::new(io::ErrorKind::Other, e)),
+        Err(e) => Err(io::Error::other(e)),
     }
 }
 
@@ -159,7 +157,7 @@ pub fn send_signal(pid: Pid, signum: i32) -> io::Result<()> {
     let sig = nix::sys::signal::Signal::try_from(signum)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     nix::sys::signal::kill(pid, sig)
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))
+        .map_err(io::Error::other)
 }
 
 

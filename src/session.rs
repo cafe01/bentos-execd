@@ -38,7 +38,7 @@ pub fn session_non_tty<S: Read + Write + AsRawFd>(
         ];
 
         let _ready = poll(&mut fds, PollTimeout::from(100u16))
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+            .map_err(|e| io::Error::other(e))?;
 
         // Check stream for incoming commands
         if let Some(revents) = fds[0].revents() {
@@ -191,7 +191,7 @@ pub fn exec_tty(req: &proto::ExecRequest) -> io::Result<TtyChild> {
     };
 
     let OpenptyResult { master, slave } = openpty(Some(&ws), None)
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        .map_err(|e| io::Error::other(e))?;
 
     let master_raw = master.as_raw_fd();
     let slave_raw = slave.as_raw_fd();
@@ -224,10 +224,9 @@ pub fn exec_tty(req: &proto::ExecRequest) -> io::Result<TtyChild> {
             std::mem::forget(slave);
 
             // Set cwd
-            if !req.cwd.is_empty() {
-                if nix::unistd::chdir(req.cwd.as_str()).is_err() {
-                    std::process::exit(127);
-                }
+            if !req.cwd.is_empty()
+                && nix::unistd::chdir(req.cwd.as_str()).is_err() {
+                std::process::exit(127);
             }
 
             // Set environment
@@ -245,7 +244,7 @@ pub fn exec_tty(req: &proto::ExecRequest) -> io::Result<TtyChild> {
                 master_fd: master,
             })
         }
-        Err(e) => Err(io::Error::new(io::ErrorKind::Other, e)),
+        Err(e) => Err(io::Error::other(e)),
     }
 }
 
@@ -287,7 +286,7 @@ pub fn session_tty<S: Read + Write + AsRawFd>(
         ];
 
         let _ready = poll(&mut fds, PollTimeout::from(100u16))
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+            .map_err(|e| io::Error::other(e))?;
 
         // Check stream for incoming
         if let Some(revents) = fds[0].revents() {

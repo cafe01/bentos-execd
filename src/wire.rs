@@ -74,6 +74,7 @@ pub fn write_proto<M: Message>(w: &mut impl Write, type_byte: u8, msg: &M) -> io
 }
 
 /// Read a TLV frame and decode as protobuf. Verifies the type byte matches.
+#[allow(dead_code)]
 pub fn read_proto<M: Message + Default>(r: &mut impl Read, expected_type: u8) -> io::Result<M> {
     let (type_byte, payload) = read_frame(r)?;
     if type_byte != expected_type {
