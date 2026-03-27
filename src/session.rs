@@ -38,7 +38,7 @@ pub fn session_non_tty<S: Read + Write + AsRawFd>(
         ];
 
         let _ready = poll(&mut fds, PollTimeout::from(100u16))
-            .map_err(|e| io::Error::other(e))?;
+            .map_err(io::Error::other)?;
 
         // Check stream for incoming commands
         if let Some(revents) = fds[0].revents() {
@@ -191,7 +191,7 @@ pub fn exec_tty(req: &proto::ExecRequest) -> io::Result<TtyChild> {
     };
 
     let OpenptyResult { master, slave } = openpty(Some(&ws), None)
-        .map_err(|e| io::Error::other(e))?;
+        .map_err(io::Error::other)?;
 
     let master_raw = master.as_raw_fd();
     let slave_raw = slave.as_raw_fd();
@@ -286,7 +286,7 @@ pub fn session_tty<S: Read + Write + AsRawFd>(
         ];
 
         let _ready = poll(&mut fds, PollTimeout::from(100u16))
-            .map_err(|e| io::Error::other(e))?;
+            .map_err(io::Error::other)?;
 
         // Check stream for incoming
         if let Some(revents) = fds[0].revents() {
