@@ -1,5 +1,7 @@
 # bentos-execd
 
+[![CI](https://github.com/cafe01/bentos-execd/actions/workflows/ci.yml/badge.svg)](https://github.com/cafe01/bentos-execd/actions/workflows/ci.yml)
+
 Guest agent for structured command execution inside BentOS VMs. The `docker exec` equivalent for BentOS.
 
 A standalone static binary that runs inside the guest, listens on AF_VSOCK port 5100, and executes commands on behalf of the host VMM daemon. Written in Rust, cross-compiled to `aarch64-unknown-linux-musl`.
