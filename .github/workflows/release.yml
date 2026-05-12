@@ -15,9 +15,11 @@ jobs:
           - target: aarch64-unknown-linux-musl
             runner: ubuntu-24.04-arm
             asset: bentos-execd-aarch64-musl
+            rustflags: ""
           - target: x86_64-unknown-linux-musl
             runner: ubuntu-24.04
             asset: bentos-execd-x86_64-musl
+            rustflags: "-C target-feature=+crt-static"
 
     steps:
       - uses: actions/checkout@v4
@@ -33,6 +35,7 @@ jobs:
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER: musl-gcc
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER: musl-gcc
+          RUSTFLAGS: ${{ matrix.rustflags }}
         run: cargo build --release --locked --target ${{ matrix.target }}
 
       - name: Stage artifact
