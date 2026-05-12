@@ -44,7 +44,9 @@ jobs:
           sha256sum ${{ matrix.asset }} > ${{ matrix.asset }}.sha256
 
       - name: Verify static
-        run: file ${{ matrix.asset }} | grep -q "statically linked"
+        run: |
+          file ${{ matrix.asset }}
+          ldd ${{ matrix.asset }} 2>&1 | grep -q "not a dynamic executable"
 
       - uses: actions/upload-artifact@v4
         with:
