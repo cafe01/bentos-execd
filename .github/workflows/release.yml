@@ -28,6 +28,12 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      - name: Release dpkg lock
+        run: |
+          sudo systemctl stop apt-daily.service apt-daily-upgrade.service apt-daily.timer apt-daily-upgrade.timer || true
+          sudo systemctl kill --kill-who=all apt-daily.service apt-daily-upgrade.service || true
+          sudo rm -f /var/lib/dpkg/lock-frontend /var/cache/apt/archives/lock
+
       - name: Install system deps
         run: sudo apt-get update && sudo apt-get install -y musl-tools protobuf-compiler
 
